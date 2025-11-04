@@ -7,8 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -20,13 +21,14 @@ jobs:
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set up Gradle (no wrapper)
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: 8.7
+      - name: Install Gradle manually
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gradle
+          gradle -v
 
-      - name: Build debug APK
-        run: gradle :app:assembleDebug
+      - name: Build APK
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
