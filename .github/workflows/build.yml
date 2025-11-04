@@ -18,18 +18,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Ставим Android SDK
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Gradle manually
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gradle
-          gradle -v
+      # Ставим современный Gradle 8.x (без wrapper)
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
 
+      # Сборка
       - name: Build APK
-        run: gradle :app:assembleDebug
+        run: |
+          echo "== Gradle projects =="
+          gradle projects
+          gradle :app:assembleDebug
 
+      # Отдаём apk как артефакт
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
