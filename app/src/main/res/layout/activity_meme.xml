@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000">
 
     <ImageView
-        android:id="@+id/meme_image"
+        android:id="@+id/memeImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop" />
+        android:src="@drawable/meme"
+        android:scaleType="centerCrop"/>
+
+    <TextView
+        android:id="@+id/memeText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ЕБАТЬ ТЫ ЛОХ"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:shadowColor="#AA000000"
+        android:shadowRadius="8"
+        android:gravity="center"
+        android:padding="24dp"
+        android:layout_gravity="bottom"/>
 </FrameLayout>
