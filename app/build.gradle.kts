@@ -15,7 +15,25 @@ android {
     versionName = "1.0"
   }
 
-  buildTypes { getByName("release") { isMinifyEnabled = false } }
+  // ДВА ВКУСА: обычный (clean) и пранк (prank)
+  flavorDimensions += "mode"
+  productFlavors {
+    create("clean") {
+      dimension = "mode"
+      applicationIdSuffix = ".clean"
+      resValue("string", "app_name", "VTB")
+    }
+    create("prank") {
+      dimension = "mode"
+      applicationIdSuffix = ".prank"
+      resValue("string", "app_name", "VTB")
+    }
+  }
+
+  buildTypes {
+    getByName("debug") { isMinifyEnabled = false }
+    getByName("release") { isMinifyEnabled = false }
+  }
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -23,9 +41,10 @@ android {
   }
   kotlinOptions { jvmTarget = "17" }
 }
-dependencies {
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-}
 
+dependencies {
+  implementation("androidx.core:core-ktx:1.13.1")
+  implementation("androidx.appcompat:appcompat:1.7.0")
+  implementation("com.google.android.material:material:1.12.0")
+  implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+}
