@@ -6,15 +6,12 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- Тонкая верхняя полоса (как в системном тулбаре) -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!-- Верхняя фиолетовая полоса -->
+    <View
+        android:id="@+id/topBar"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:background="#F2ECFF"
-        app:navigationIcon="@drawable/ic_menu_24"
-        app:title=""
-        app:menu="@menu/top_menu"
+        android:background="#5E35B1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -31,7 +28,7 @@
         android:paddingEnd="16dp"
         android:paddingTop="6dp"
         android:paddingBottom="6dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -65,7 +62,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Поле ввода с префиксом +7 (как на твоём скрине) -->
+    <!-- Поле ввода -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/phoneLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense"
@@ -85,12 +82,11 @@
             android:id="@+id/phoneInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint=""
             android:inputType="phone"
             android:textSize="18sp"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Кнопка синяя, некликабельность/кликабельность мы контролируем кодом, но внешне как у тебя -->
+    <!-- Кнопка -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/continueBtn"
         android:layout_width="0dp"
@@ -108,7 +104,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Низ: слабый серый текст + "политики конфиденциальности" синим -->
+    <!-- Текст политики -->
     <TextView
         android:id="@+id/policy"
         android:layout_width="0dp"
