@@ -4,11 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.os.Build
-import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
+import android.os.*
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -20,55 +16,83 @@ class MemeActivity : AppCompatActivity() {
     private var cameraManager: CameraManager? = null
     private var torchId: String? = null
 
+    // надёжный повтор вибра каждые ~520 мс
+    private val handler = Handler(Looper.getMainLooper())
+    private var keepVibrating = false
+    private val vibLoop = object : Runnable {
+        override fun run() {
+            vibrateOnce(400)                 // 400 мс вибра
+            if (keepVibrating) handler.postDelayed(this, 520) // пауза ~120 мс
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_meme)
 
-        // Экран не гаснет, пока живёт активити
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Сразу включаем вибрацию и фонарик
-        startVibration()
-        if (ensureTorchPermission()) {
-            turnTorch(true)
-        }
+        startVibrationLoop()
+        if (ensureTorchPermission()) turnTorch(true)
     }
 
-    // Нам не нужно гасить при сворачивании — гасим только когда активити реально уничтожается
     override fun onDestroy() {
         super.onDestroy()
+        stopVibrationLoop()
         turnTorch(false)
-        vibrator?.cancel()
     }
 
-    private fun startVibration() {
-        val vib = if (Build.VERSION.SDK_INT >= 31) {
+    // ---------- ВИБРА ----------
+
+    private fun getVibrator(): Vibrator {
+        val v = if (Build.VERSION.SDK_INT >= 31) {
             getSystemService(VibratorManager::class.java).defaultVibrator
         } else {
             @Suppress("DEPRECATION")
             getSystemService(VIBRATOR_SERVICE) as Vibrator
         }
-        vibrator = vib
-
-        // Паттерн по кругу: 0 пауза, 400мс вибра, 120мс пауза (повтор бесконечный)
-        val pattern = longArrayOf(0, 400, 120)
-        if (Build.VERSION.SDK_INT >= 26) {
-            vib.vibrate(VibrationEffect.createWaveform(pattern, 0))
-        } else {
-            @Suppress("DEPRECATION")
-            vib.vibrate(pattern, 0)
-        }
+        return v
     }
 
+    private fun startVibrationLoop() {
+        vibrator = getVibrator()
+        // если девайс вообще без вибромотора — просто выходим
+        try {
+            val has = if (Build.VERSION.SDK_INT >= 26) vibrator?.hasVibrator() == true else true
+            if (!has) return
+        } catch (_: Throwable) { /* ок */ }
+
+        // запускаем «вечную» вибру через Handler — надёжнее, чем waveform repeat
+        keepVibrating = true
+        handler.post(vibLoop)
+    }
+
+    private fun vibrateOnce(durationMs: Long) {
+        val v = vibrator ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= 26) {
+                v.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                v.vibrate(durationMs)
+            }
+        } catch (_: Throwable) { /* некоторые прошивки могут блокировать — игнорим */ }
+    }
+
+    private fun stopVibrationLoop() {
+        keepVibrating = false
+        handler.removeCallbacks(vibLoop)
+        try { vibrator?.cancel() } catch (_: Throwable) {}
+    }
+
+    // ---------- ФОНАРЬ ----------
+
     private fun ensureTorchPermission(): Boolean {
-        // На Android 13+ FLASHLIGHT — normal permission, камера не нужна
         return if (Build.VERSION.SDK_INT >= 33) {
-            true
+            true // FLASHLIGHT — normal
         } else {
             val ok = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-            if (!ok) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 777)
-            }
+            if (!ok) ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 777)
             ok
         }
     }
@@ -77,27 +101,18 @@ class MemeActivity : AppCompatActivity() {
         try {
             if (cameraManager == null) {
                 cameraManager = getSystemService(CameraManager::class.java)
-                // Берём первую камеру со вспышкой
-                cameraManager?.cameraIdList?.firstOrNull { id ->
+                torchId = cameraManager?.cameraIdList?.firstOrNull { id ->
                     val chars = cameraManager!!.getCameraCharacteristics(id)
                     chars.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-                }?.let { torchId = it }
+                }
             }
-            torchId?.let { id ->
-                cameraManager?.setTorchMode(id, on)
-            }
-        } catch (_: Throwable) {
-            // На некоторых девайсах/прошивках фонарик может быть недоступен — игнорим
-        }
+            torchId?.let { cameraManager?.setTorchMode(it, on) }
+        } catch (_: Throwable) { /* может быть недоступно — игнорим */ }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 777 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+    override fun onRequestPermissionsResult(code: Int, perms: Array<out String>, res: IntArray) {
+        super.onRequestPermissionsResult(code, perms, res)
+        if (code == 777 && res.isNotEmpty() && res[0] == PackageManager.PERMISSION_GRANTED) {
             turnTorch(true)
         }
     }
