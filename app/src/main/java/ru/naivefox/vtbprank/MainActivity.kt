@@ -3,20 +3,20 @@ package ru.naivefox.vtbprank
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.Button
-import android.widget.EditText
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val phoneInput = findViewById<EditText>(R.id.phone_input)
-        val continueBtn = findViewById<Button>(R.id.continue_button)
+        val phoneInput = findViewById<TextInputEditText>(R.id.phoneInput)
+        val btn = findViewById<MaterialButton>(R.id.continueBtn)
 
-        continueBtn.setOnClickListener {
-            val intent = Intent(this, MemeActivity::class.java)
-            startActivity(intent)
+        btn.setOnClickListener {
+            // тут мог бы быть реальный логин, но у нас пранк :)
+            startActivity(Intent(this, MemeActivity::class.java))
         }
     }
 }
