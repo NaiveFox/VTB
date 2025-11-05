@@ -1,43 +1,41 @@
-name: Build APK
+name: Build both APKs
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
-      # Ставим Android SDK
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
 
-      # Ставим современный Gradle 8.x (без wrapper)
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
 
-      # Сборка
-      - name: Build APK
+      - name: Build debug APKs (clean + prank)
         run: |
-          echo "== Gradle projects =="
-          gradle projects
-          gradle :app:assembleDebug
+          gradle :app:assembleCleanDebug
+          gradle :app:assemblePrankDebug
 
-      # Отдаём apk как артефакт
-      - name: Upload APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: prank-vtb-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: vtb-apks
+          path: |
+            app/build/outputs/apk/clean/debug/*.apk
+            app/build/outputs/apk/prank/debug/*.apk
